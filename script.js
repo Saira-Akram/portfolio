@@ -1,37 +1,67 @@
-const generateBtn = document.getElementById('generateBtn');
-const passwordDisplay = document.getElementById("Password");
+const board = document.getElementById('board')
+const live = document.getElementById('status')
+const resetBtn = document.getElementById('reset-btn')
 
-generateBtn.addEventListener('click', ()=>{
-    const length = document.getElementById("length").value;
-    const includeLowercase = document.getElementById("includeLowercase").checked;
-    const includeUppercase = document.getElementById("includeUppercase").checked;
-    const includeNumbers = document.getElementById("includeNumbers").checked;
-    const includeSymbols = document.getElementById("includeSymbols").checked;
+let currentPlayer = 'X';
+let gameBoard = ['', '', '', '', '', '', '', '', ''];
+let gameActive = true;
 
-    const password = generatePassword(length, includeLowercase, includeUppercase, includeNumbers,includeSymbols);
-    passwordDisplay.textContent = password || "Invalid options! Please try again.";
-});
-
-function generatePassword(length, includeLowercase, includeUppercase, includeNumbers, includeSymbols){
-    const lowerCase = "abcdefghijklmnopqrstuvwxyz";
-    const upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const numbers = "0123456789";
-    const symbols = "!@#$%^&*()_+[]{}|;:',.<>?/";
-
-    let characterPool = "";
-    if (includeLowercase) characterPool += lowerCase;
-    if (includeUppercase) characterPool += upperCase;
-    if (includeNumbers) characterPool += numbers;
-    if (includeSymbols) characterPool += symbols;
-
-    if (!characterPool || length < 8 || length > 128) {
-        return null;
-    }
-    
-   let Password = "";
-   for(i = 0; i < length; i++) {
-    const randomindex = Math.floor(Math.random() * characterPool.length);
-    Password += characterPool[randomindex];
-   }
-   return Password;
+for(i = 0; i < 9; i++){
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    cell.setAttribute('data-index', i);
+    cell.addEventListener('click', handleCellClick);
+    board.appendChild(cell);
 }
+
+function  handleCellClick(e){
+    const index = e.target.getAttribute('data-index');
+
+    if (gameBoard[index] !== '' || !gameActive) return;
+
+    gameBoard[index] = currentPlayer;
+    console.log(gameBoard);
+    
+    e.target.textContent = currentPlayer;
+
+    if(checkWinner()){
+        live.textContent = 'player ' + currentPlayer + ' wins!';
+        gameActive = false;
+        return;
+    }
+
+    if(checkDraw()){
+        live.textContent = "its a draw"
+        gameActive = false;
+        return;
+    }
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    live.textContent = 'player ' + currentPlayer + " 's turn";
+}
+
+function checkWinner(){
+    const winningCombos = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ]
+     return winningCombos.some(combo => {
+        return combo.every(index => 
+            gameBoard[index] === currentPlayer
+        );
+     });
+}
+
+function checkDraw(){
+    return gameBoard.every(cell => cell !== '')
+}
+
+resetBtn.addEventListener('click', () =>{
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    gameActive = 'X'
+    live.textContent = "player  X's  turn";
+
+    document.querySelectorAll('.cell').forEach(cell =>{
+        cell.textContent = '';
+    })
+})
